@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch } from "vue";
-import { NInput } from "naive-ui";
+import JsonEditor from "./JsonEditor.vue";
 import { useAppStore } from "../stores/appStore";
 import { useJson } from "../composables/useJson";
 import { useDebounce } from "../composables/useDebounce";
@@ -19,13 +19,7 @@ watch(
 
 <template>
   <div class="editor-pane">
-    <n-input
-      type="textarea"
-      v-model:value="appStore.inputText"
-      placeholder="Paste or type JSON here..."
-      :autosize="false"
-      class="editor-input"
-    />
+    <JsonEditor v-model="appStore.inputText" placeholder="Paste or type JSON here..." />
   </div>
 </template>
 
@@ -56,45 +50,5 @@ watch(
   border-left: 1px solid rgba(90, 200, 250, 0.2);
   pointer-events: none;
   z-index: 2;
-}
-
-.editor-input {
-  height: 100%;
-}
-
-.editor-input :deep(.n-input__textarea) {
-  height: 100% !important;
-  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, Monaco,
-    "Courier New", monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  background: transparent;
-  color: var(--text-primary);
-  caret-color: #5ac8fa;
-}
-
-.editor-input :deep(.n-input__textarea-el) {
-  height: 100% !important;
-  padding: 16px;
-}
-
-.editor-input :deep(.n-input__textarea-el::selection) {
-  background: rgba(0, 122, 204, 0.35);
-  color: #ffffff;
-}
-
-.editor-input :deep(.n-input__textarea-el::placeholder) {
-  color: var(--text-dim) !important;
-  font-style: italic;
-  opacity: 0.6;
-}
-
-.editor-input :deep(.n-input__border) {
-  border: none !important;
-}
-
-.editor-input :deep(.n-input__state-border) {
-  border: none !important;
-  box-shadow: none !important;
 }
 </style>

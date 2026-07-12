@@ -106,11 +106,12 @@ body {
   box-shadow: 0 0 8px var(--accent-glow) !important;
 }
 
-.n-button {
-  transition: all 0.2s ease !important;
+.n-button:not(.n-button--disabled) {
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
-.n-button:hover {
+.n-button:not(.n-button--disabled):hover {
   text-shadow: 0 0 8px var(--accent-glow);
 }
 

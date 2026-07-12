@@ -9,6 +9,7 @@ import {
   NEmpty,
   useMessage,
 } from "naive-ui";
+import JsonEditor from "./JsonEditor.vue";
 import type { TreeOption } from "naive-ui";
 import { useAppStore } from "../stores/appStore";
 import type { JsonTreeNode } from "../types";
@@ -134,12 +135,10 @@ function renderLabel(info: {
     <div class="inspector-body">
       <template v-if="props.viewMode === 'text'">
         <div class="output-area">
-          <n-input
-            type="textarea"
-            :value="appStore.outputText"
-            readonly
+          <JsonEditor
+            v-model="appStore.outputText"
+            :readonly="true"
             placeholder="Formatted or minified output appears here..."
-            class="output-textarea"
           />
         </div>
       </template>
@@ -424,34 +423,6 @@ function renderLabel(info: {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.output-textarea {
-  height: 100%;
-}
-
-.output-textarea :deep(.n-input__textarea) {
-  height: 100% !important;
-  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, Monaco,
-    "Courier New", monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  background: transparent;
-  color: var(--text-primary);
-}
-
-.output-textarea :deep(.n-input__textarea-el) {
-  height: 100% !important;
-  resize: none;
-  padding: 16px;
-}
-
-.output-textarea :deep(.n-input__border) {
-  border: none !important;
-}
-
-.output-textarea :deep(.n-input__state-border) {
-  border: none !important;
-  box-shadow: none !important;
+  overflow: hidden;
 }
 </style>
