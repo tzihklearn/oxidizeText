@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h, computed, watch, onMounted, onBeforeUnmount, shallowRef } from "vue";
+import { ref, h, computed, watch, onMounted, onBeforeUnmount, shallowRef, toRaw } from "vue";
 import {
   NTree,
   NInput,
@@ -54,7 +54,7 @@ watch(
   () => appStore.treeData,
   (data) => {
     if (workerRef.value && data.length > 0) {
-      workerRef.value.postMessage({ type: "index", treeData: data });
+      workerRef.value.postMessage({ type: "index", treeData: toRaw(data) });
       // Re-run current filter with fresh index
       if (debouncedFilter.value) {
         workerRef.value.postMessage({
@@ -77,7 +77,7 @@ onMounted(() => {
   workerRef.value = worker;
   // Initial index
   if (appStore.treeData.length > 0) {
-    worker.postMessage({ type: "index", treeData: appStore.treeData });
+    worker.postMessage({ type: "index", treeData: toRaw(appStore.treeData) });
   }
 });
 
