@@ -13,10 +13,20 @@ export const useAppStore = defineStore("app", {
     treeNodeCount: 0,
     jsonSizeBytes: 0,
     viewMode: "tree" as ViewMode,
+    filePath: "",
+    isDirty: false,
   }),
+  getters: {
+    fileName(state): string {
+      if (!state.filePath) return "untitled";
+      const parts = state.filePath.split("/");
+      return parts[parts.length - 1];
+    },
+  },
   actions: {
     setInput(text: string) {
       this.inputText = text;
+      this.markDirty();
     },
     setOutput(text: string) {
       this.outputText = text;
@@ -35,6 +45,13 @@ export const useAppStore = defineStore("app", {
     },
     toggleViewMode() {
       this.viewMode = this.viewMode === "tree" ? "text" : "tree";
+    },
+    setFilePath(path: string) {
+      this.filePath = path;
+      this.isDirty = false;
+    },
+    markDirty() {
+      this.isDirty = true;
     },
   },
 });

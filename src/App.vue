@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { NMessageProvider } from "naive-ui";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useAppStore } from "./stores/appStore";
 import { useResizer } from "./composables/useResizer";
 import Toolbar from "./components/Toolbar.vue";
@@ -76,6 +77,15 @@ const demoJson = JSON.stringify(
 onMounted(() => {
   appStore.setInput(demoJson);
 });
+
+watch(
+  () => [appStore.fileName, appStore.isDirty] as const,
+  ([name, dirty]) => {
+    const title = `${dirty ? "● " : ""}${name} — OxidizeText`;
+    getCurrentWindow().setTitle(title);
+  },
+  { immediate: true }
+);
 </script>
 
 <template>

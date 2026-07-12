@@ -1,11 +1,53 @@
 <script setup lang="ts">
 import { NButton, NSpace, useMessage } from "naive-ui";
+import { invoke } from "@tauri-apps/api/core";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import { useAppStore } from "../stores/appStore";
 import { useJson } from "../composables/useJson";
 
 const appStore = useAppStore();
 const { format, minify, validate } = useJson();
 const message = useMessage();
+
+async function handleOpen() {
+  try {
+    const selected = await open({
+      multiple: false,
+      filters: [{ name: "JSON", extensions: ["json"] }],
+    });
+    if (selected) {
+      const path = typeof selected === "string" ? selected : selected;
+      const content = await invoke<string>("read_file", { path });
+      appStore.setFilePath(path as string);
+      appStore.setInput(content);
+      appStore.isDirty = false; // Reset: setInput marks dirty, but loading a file is clean
+      message.success(`Opened ${appStore.fileName}`);
+    }
+  } catch (e) {
+    message.error("Failed to open file");
+    console.error(e);
+  }
+}
+
+async function handleSave() {
+  try {
+    let path = appStore.filePath;
+    if (!path) {
+      const selected = await save({
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (!selected) return;
+      path = selected;
+      appStore.setFilePath(path);
+    }
+    await invoke("write_file", { path, content: appStore.inputText });
+    appStore.isDirty = false;
+    message.success(`Saved ${appStore.fileName}`);
+  } catch (e) {
+    message.error("Failed to save file");
+    console.error(e);
+  }
+}
 
 async function handleFormat() {
   try {
@@ -72,6 +114,12 @@ const viewToggleIcon = () =>
 <template>
   <div class="toolbar">
     <n-space>
+      <n-button size="small" text @click="handleOpen">
+        <span class="btn-icon">📁</span> Open
+      </n-button>
+      <n-button size="small" text @click="handleSave">
+        <span class="btn-icon">💾</span> Save
+      </n-button>
       <n-button size="small" text @click="handleFormat">
         <span class="btn-icon">✨</span> Format
       </n-button>

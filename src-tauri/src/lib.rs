@@ -1,6 +1,7 @@
 mod commands;
 mod models;
 
+use commands::file_cmds::{read_file, write_file};
 use commands::json_cmds::{format_json, minify_json, validate_json};
 use commands::tree_cmds::json_to_tree;
 
@@ -8,7 +9,10 @@ use commands::tree_cmds::json_to_tree;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
+            read_file,
+            write_file,
             format_json,
             minify_json,
             validate_json,

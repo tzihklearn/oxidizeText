@@ -37,6 +37,10 @@ const validityClass = computed(() =>
 <template>
   <div class="status-bar">
     <n-text class="status-item" :depth="3">
+      {{ appStore.fileName }}
+    </n-text>
+    <span class="status-separator">|</span>
+    <n-text class="status-item" :depth="3">
       Nodes: {{ nodeCount }}
     </n-text>
     <span class="status-separator">|</span>
