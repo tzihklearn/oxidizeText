@@ -42,8 +42,10 @@ export function useJson() {
     try {
       const result = await invoke<JsonTreeNode[]>("json_to_tree", { input });
       appStore.setTreeData(result);
+      appStore.setIsValidJson(true);
     } catch (e) {
       appStore.setTreeData([]);
+      appStore.setIsValidJson(false);
       console.error("Failed to load tree:", e);
     } finally {
       appStore.setLoading(false);

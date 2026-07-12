@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import { watch } from "vue";
+import { storeToRefs } from "pinia";
 import JsonEditor from "./JsonEditor.vue";
 import { useAppStore } from "../stores/appStore";
 import { useJson } from "../composables/useJson";
 import { useDebounce } from "../composables/useDebounce";
 
 const appStore = useAppStore();
+const { inputText } = storeToRefs(appStore);
 const { loadTree } = useJson();
 const debouncedLoadTree = useDebounce(loadTree, 500);
 
-watch(
-  () => appStore.inputText,
-  (newVal) => {
-    debouncedLoadTree(newVal);
-  }
-);
+watch(inputText, (newVal) => {
+  if (newVal) debouncedLoadTree(newVal);
+});
 </script>
 
 <template>
