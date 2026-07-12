@@ -4,6 +4,7 @@ import { NMessageProvider } from "naive-ui";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useAppStore } from "./stores/appStore";
 import { useResizer } from "./composables/useResizer";
+import { useJson } from "./composables/useJson";
 import Toolbar from "./components/Toolbar.vue";
 import EditorPane from "./components/EditorPane.vue";
 import InspectorPanel from "./components/InspectorPanel.vue";
@@ -11,6 +12,7 @@ import StatusBar from "./components/StatusBar.vue";
 
 const appStore = useAppStore();
 const { isDragging, sidebarWidth, startDrag } = useResizer();
+const { loadTree } = useJson();
 
 const demoJson = JSON.stringify(
   {
@@ -76,6 +78,8 @@ const demoJson = JSON.stringify(
 
 onMounted(() => {
   appStore.setInput(demoJson);
+  // Direct tree loading bypasses EditorPane's watch — belt-and-suspenders
+  loadTree(demoJson);
 });
 
 watch(

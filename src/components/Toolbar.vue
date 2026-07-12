@@ -7,7 +7,7 @@ import { useJson } from "../composables/useJson";
 import { useErrorHandler } from "../utils/error";
 
 const appStore = useAppStore();
-const { format, minify, validate } = useJson();
+const { format, minify, validate, loadTree } = useJson();
 const { handleError, handleSuccess } = useErrorHandler();
 
 async function handleOpen() {
@@ -22,6 +22,7 @@ async function handleOpen() {
       appStore.setFilePath(path as string);
       appStore.setInput(content);
       appStore.isDirty = false; // Reset: setInput marks dirty, but loading a file is clean
+      loadTree(content);
       handleSuccess(`Opened ${appStore.fileName}`);
     }
   } catch (e) {
@@ -95,6 +96,7 @@ async function handlePaste() {
   try {
     const text = await navigator.clipboard.readText();
     appStore.setInput(text);
+    loadTree(text);
     handleSuccess("Pasted from clipboard");
   } catch {
     handleError("Paste failed", "Paste");
