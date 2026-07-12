@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { NButton, NSpace, useMessage } from "naive-ui";
+import { NButton, NSpace } from "naive-ui";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { useAppStore } from "../stores/appStore";
 import { useJson } from "../composables/useJson";
+import { useErrorHandler } from "../utils/error";
 
 const appStore = useAppStore();
 const { format, minify, validate } = useJson();
-const message = useMessage();
+const { handleError, handleSuccess } = useErrorHandler();
 
 async function handleOpen() {
   try {
@@ -21,11 +22,10 @@ async function handleOpen() {
       appStore.setFilePath(path as string);
       appStore.setInput(content);
       appStore.isDirty = false; // Reset: setInput marks dirty, but loading a file is clean
-      message.success(`Opened ${appStore.fileName}`);
+      handleSuccess(`Opened ${appStore.fileName}`);
     }
   } catch (e) {
-    message.error("Failed to open file");
-    console.error(e);
+    handleError(e, "Open file");
   }
 }
 
@@ -42,10 +42,9 @@ async function handleSave() {
     }
     await invoke("write_file", { path, content: appStore.inputText });
     appStore.isDirty = false;
-    message.success(`Saved ${appStore.fileName}`);
+    handleSuccess(`Saved ${appStore.fileName}`);
   } catch (e) {
-    message.error("Failed to save file");
-    console.error(e);
+    handleError(e, "Save file");
   }
 }
 
@@ -55,8 +54,7 @@ async function handleFormat() {
     appStore.setOutput(result);
     appStore.setViewMode("text");
   } catch (e) {
-    message.error("Format failed");
-    console.error(e);
+    handleError(e, "Format");
   }
 }
 
@@ -66,8 +64,7 @@ async function handleMinify() {
     appStore.setOutput(result);
     appStore.setViewMode("text");
   } catch (e) {
-    message.error("Minify failed");
-    console.error(e);
+    handleError(e, "Minify");
   }
 }
 
@@ -75,9 +72,9 @@ async function handleValidate() {
   const isValid = await validate(appStore.inputText);
   appStore.setIsValidJson(isValid);
   if (isValid) {
-    message.success("Valid JSON");
+    handleSuccess("Valid JSON");
   } else {
-    message.error("Invalid JSON");
+    handleError("Invalid JSON", "Validate");
   }
 }
 
@@ -88,9 +85,9 @@ function handleToggleView() {
 async function handleCopy() {
   try {
     await navigator.clipboard.writeText(appStore.inputText);
-    message.success("Copied to clipboard");
+    handleSuccess("Copied to clipboard");
   } catch {
-    message.error("Copy failed");
+    handleError("Copy failed", "Copy");
   }
 }
 
@@ -98,9 +95,9 @@ async function handlePaste() {
   try {
     const text = await navigator.clipboard.readText();
     appStore.setInput(text);
-    message.success("Pasted from clipboard");
+    handleSuccess("Pasted from clipboard");
   } catch {
-    message.error("Paste failed");
+    handleError("Paste failed", "Paste");
   }
 }
 

@@ -1,4 +1,5 @@
 mod commands;
+mod error;
 mod models;
 
 use commands::file_cmds::{read_file, write_file};
