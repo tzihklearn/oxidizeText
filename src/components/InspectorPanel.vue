@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h } from "vue";
+import { ref, h, computed, watch, onMounted, onBeforeUnmount, shallowRef } from "vue";
 import {
   NTree,
   NInput,
@@ -12,6 +12,8 @@ import {
 import JsonEditor from "./JsonEditor.vue";
 import type { TreeOption } from "naive-ui";
 import { useAppStore } from "../stores/appStore";
+import { useDebounce } from "../composables/useDebounce";
+import FilterWorker from "../workers/filter.worker?worker";
 import type { JsonTreeNode } from "../types";
 
 const props = withDefaults(
@@ -23,7 +25,101 @@ const props = withDefaults(
 
 const appStore = useAppStore();
 const message = useMessage();
-const filterPattern = ref("");
+// ── Filter state ──────────────────────────────────────────────────────────
+const filterInput = ref(""); // raw input value (bound to n-input)
+const debouncedFilter = ref(""); // debounced value → sent to worker
+const matchingIds = ref<Set<string>>(new Set());
+const workerRef = shallowRef<Worker | null>(null);
+
+const isFilterActive = computed(() => filterInput.value.trim().length > 0);
+
+// Debounce: raw input → 300ms → debouncedFilter
+const setDebouncedFilter = useDebounce((val: string) => {
+  debouncedFilter.value = val;
+}, 300);
+watch(filterInput, (val) => setDebouncedFilter(val));
+
+// Send filter query to worker when debounced value changes
+watch(debouncedFilter, (pattern) => {
+  if (!workerRef.value) return;
+  if (!pattern.trim()) {
+    matchingIds.value = new Set();
+    return;
+  }
+  workerRef.value.postMessage({ type: "filter", pattern });
+});
+
+// Index treeData in worker whenever it changes (new file opened, etc.)
+watch(
+  () => appStore.treeData,
+  (data) => {
+    if (workerRef.value && data.length > 0) {
+      workerRef.value.postMessage({ type: "index", treeData: data });
+      // Re-run current filter with fresh index
+      if (debouncedFilter.value) {
+        workerRef.value.postMessage({
+          type: "filter",
+          pattern: debouncedFilter.value,
+        });
+      }
+    }
+  }
+);
+
+// Worker lifecycle
+onMounted(() => {
+  const worker = new FilterWorker();
+  worker.onmessage = (e: MessageEvent) => {
+    if (e.data.type === "result") {
+      matchingIds.value = new Set(e.data.matchingIds as string[]);
+    }
+  };
+  workerRef.value = worker;
+  // Initial index
+  if (appStore.treeData.length > 0) {
+    worker.postMessage({ type: "index", treeData: appStore.treeData });
+  }
+});
+
+onBeforeUnmount(() => {
+  workerRef.value?.terminate();
+});
+
+// ── Filtered tree computation ─────────────────────────────────────────────
+
+/** Prune tree to nodes that match filter + their ancestors (to keep structure visible) */
+function filterTreeKeepingAncestors(
+  nodes: JsonTreeNode[],
+  matchIds: Set<string>
+): JsonTreeNode[] {
+  function walk(list: JsonTreeNode[]): JsonTreeNode[] {
+    const result: JsonTreeNode[] = [];
+    for (const node of list) {
+      const filteredChildren = node.children
+        ? walk(node.children)
+        : undefined;
+      const hasMatchingChildren =
+        filteredChildren && filteredChildren.length > 0;
+      const isMatch = matchIds.has(node.id);
+
+      if (isMatch || hasMatchingChildren) {
+        result.push({
+          ...node,
+          children: filteredChildren || node.children,
+        });
+      }
+    }
+    return result;
+  }
+  return walk(nodes);
+}
+
+/** Tree data swapped in when filtering is active */
+const filteredTreeData = computed(() => {
+  if (!isFilterActive.value) return appStore.treeData;
+  return filterTreeKeepingAncestors(appStore.treeData, matchingIds.value);
+});
+
 const expandedKeys = ref<string[]>([]);
 
 const typeColors: Record<string, string> = {
@@ -47,21 +143,14 @@ function collectIds(nodes: JsonTreeNode[]): string[] {
 }
 
 function expandAll() {
-  expandedKeys.value = collectIds(appStore.treeData);
+  expandedKeys.value = collectIds(
+    isFilterActive.value ? filteredTreeData.value : appStore.treeData
+  );
 }
 
 function collapseAll() {
   expandedKeys.value = [];
 }
-
-const filterFunction = (pattern: string, node: TreeOption) => {
-  const p = pattern.toLowerCase();
-  const jsonNode = node as unknown as JsonTreeNode;
-  return (
-    jsonNode.key.toLowerCase().includes(p) ||
-    jsonNode.preview.toLowerCase().includes(p)
-  );
-};
 
 function getBaseType(label: string): string {
   const spaceIdx = label.indexOf(" ");
@@ -118,11 +207,14 @@ function renderLabel(info: {
       }}</span>
       <template v-if="props.viewMode === 'tree'">
         <n-input
-          v-model:value="filterPattern"
+          v-model:value="filterInput"
           size="small"
           placeholder="Filter nodes..."
           class="filter-input"
         />
+        <span v-if="isFilterActive" class="filter-count">
+          {{ matchingIds.size }} match{{ matchingIds.size !== 1 ? "es" : "" }}
+        </span>
         <n-space>
           <n-button size="small" text @click="expandAll">Expand All</n-button>
           <n-button size="small" text @click="collapseAll"
@@ -156,13 +248,11 @@ function renderLabel(info: {
 
         <n-tree
           v-else
-          :data="appStore.treeData"
+          :data="(isFilterActive ? filteredTreeData : appStore.treeData) as unknown as TreeOption[]"
           :default-expand-all="false"
           :expand-on-click="true"
           block-node
           :render-label="renderLabel"
-          :filter="filterFunction"
-          :pattern="filterPattern"
           :expanded-keys="expandedKeys"
           @update:expanded-keys="expandedKeys = $event as string[]"
           key-field="id"
@@ -254,6 +344,13 @@ function renderLabel(info: {
 .filter-input {
   flex: 1;
   min-width: 80px;
+}
+
+.filter-count {
+  font-size: 11px;
+  color: #5ac8fa;
+  white-space: nowrap;
+  text-shadow: 0 0 6px rgba(90, 200, 250, 0.3);
 }
 
 .filter-input :deep(.n-input__input-el) {

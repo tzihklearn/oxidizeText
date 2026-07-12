@@ -3,12 +3,10 @@ import { useResizer } from "../composables/useResizer";
 
 describe("useResizer", () => {
   beforeEach(() => {
-    // Reset mocks
     vi.restoreAllMocks();
   });
 
   afterEach(() => {
-    // Clean up any lingering event listeners
     vi.restoreAllMocks();
   });
 
@@ -39,23 +37,23 @@ describe("useResizer", () => {
     expect(addSpy).toHaveBeenCalledWith("mouseup", expect.any(Function));
   });
 
+  /** Helper: extract a registered event handler from addEventListener mocks */
+  function getHandler(spy: ReturnType<typeof vi.spyOn>, event: string) {
+    return (spy.mock.calls.find(([e]: [string, ...unknown[]]) => e === event)?.[1] ?? null) as
+      | ((...args: unknown[]) => void)
+      | null;
+  }
+
   it("mouseup sets isDragging back to false", () => {
     const removeSpy = vi.spyOn(document, "removeEventListener");
+    const addSpy = vi.spyOn(document, "addEventListener");
     const { isDragging, startDrag } = useResizer();
-
-    let mouseUpHandler: (() => void) | null = null;
-    vi.spyOn(document, "addEventListener").mockImplementation(
-      (event, handler) => {
-        if (event === "mouseup") {
-          mouseUpHandler = handler as () => void;
-        }
-      }
-    );
 
     startDrag(new MouseEvent("mousedown", { clientX: 500 }));
     expect(isDragging.value).toBe(true);
 
-    // Simulate mouseup
+    // Simulate mouseup via the registered handler
+    const mouseUpHandler = getHandler(addSpy, "mouseup");
     mouseUpHandler?.();
     expect(isDragging.value).toBe(false);
 
@@ -65,19 +63,13 @@ describe("useResizer", () => {
   });
 
   it("mousemove updates sidebarWidth within bounds", () => {
+    const addSpy = vi.spyOn(document, "addEventListener");
     const { sidebarWidth, startDrag } = useResizer();
-
-    let mouseMoveHandler: ((e: MouseEvent) => void) | null = null;
-    vi.spyOn(document, "addEventListener").mockImplementation(
-      (event, handler) => {
-        if (event === "mousemove") {
-          mouseMoveHandler = handler as (e: MouseEvent) => void;
-        }
-      }
-    );
 
     // Start drag at clientX=500 with current width=450
     startDrag(new MouseEvent("mousedown", { clientX: 500 }));
+
+    const mouseMoveHandler = getHandler(addSpy, "mousemove");
 
     // Move right by 100 → width should be 550
     mouseMoveHandler?.(new MouseEvent("mousemove", { clientX: 600 }));
@@ -93,19 +85,13 @@ describe("useResizer", () => {
   });
 
   it("sidebarWidth stays within min (250) and max (800) bounds", () => {
+    const addSpy = vi.spyOn(document, "addEventListener");
     const { sidebarWidth, startDrag } = useResizer();
-
-    let mouseMoveHandler: ((e: MouseEvent) => void) | null = null;
-    vi.spyOn(document, "addEventListener").mockImplementation(
-      (event, handler) => {
-        if (event === "mousemove") {
-          mouseMoveHandler = handler as (e: MouseEvent) => void;
-        }
-      }
-    );
 
     // Start drag at clientX=450, current width=450
     startDrag(new MouseEvent("mousedown", { clientX: 450 }));
+
+    const mouseMoveHandler = getHandler(addSpy, "mousemove");
 
     // Try to go below min
     mouseMoveHandler?.(new MouseEvent("mousemove", { clientX: -1000 }));

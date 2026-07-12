@@ -22,7 +22,6 @@ describe("useJson", () => {
     it("calls format_json and returns the result", async () => {
       mockedInvoke.mockResolvedValueOnce('{\n  "a": 1\n}');
       const { format } = useJson();
-      const store = useAppStore();
 
       const result = await format('{"a":1}');
 
