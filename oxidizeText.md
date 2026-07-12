@@ -275,7 +275,7 @@ fn main() {
 
 ```toml
 [package]
-name = "com-tzih-oxidizetext"
+name = "oxidizetext"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
@@ -287,7 +287,7 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "com_tzih_oxidizetext_lib"
+name = "oxidizetext_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -447,7 +447,7 @@ export const useAppStore = defineStore('app', {
 
 ```json
 {
-  "name": "com-tzih-oxidizetext",
+  "name": "oxidizetext",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -574,9 +574,9 @@ npm run tauri build
 ```json
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "com-tzih-OxidizeText",
+  "productName": "oxidizetext",
   "version": "0.1.0",
-  "identifier": "com.tzih.OxidizeText",
+  "identifier": "com.oxidizetext.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -586,7 +586,7 @@ npm run tauri build
   "app": {
     "windows": [
       {
-        "title": "com-tzih-OxidizeText",
+        "title": "oxidizetext",
         "width": 800,
         "height": 600
       }

@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    com_tzih_oxidizetext_lib::run()
+    oxidizetext_lib::run()
 }

@@ -75,7 +75,7 @@ src/                           # Vue 3 frontend
       tauri-api.ts             # Mock for @tauri-apps/api/core invoke
 
 src-tauri/src/
-  main.rs                      # Thin entry: calls com_tzih_oxidizetext_lib::run()
+  main.rs                      # Thin entry: calls oxidizetext_lib::run()
   lib.rs                       # Tauri builder, command registration, plugin setup
   error.rs                     # AppError enum (JsonParse, Io, Other)
   commands/
@@ -86,7 +86,7 @@ src-tauri/src/
     tree_node.rs               # JsonTreeNode struct (id, key, path, type_label, preview, children)
 ```
 
-**Rust crate naming quirk**: The Cargo.toml sets `[lib] name = "com_tzih_oxidizetext_lib"` (underscores, not hyphens). The bin crate `com-tzih-oxidizetext` depends on it. Always reference the lib as `com_tzih_oxidizetext_lib` in Rust code.
+**Rust crate naming**: The Cargo.toml sets `[lib] name = "oxidizetext_lib"` (underscores, not hyphens). The bin crate `oxidizetext` depends on it. Always reference the lib as `oxidizetext_lib` in Rust code.
 
 **Tauri v2 (not v1)**: Uses v2 APIs — `@tauri-apps/api` v2, capabilities-based permissions, `tauri::generate_context!()`, `tauri-plugin-opener`, `tauri-plugin-dialog`.
 
