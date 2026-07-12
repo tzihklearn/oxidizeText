@@ -27,7 +27,7 @@ const expandedKeys = ref<string[]>([]);
 
 const typeColors: Record<string, string> = {
   object: "#569cd6",
-  array: "#6a9955",
+  array: "#4ec9b0",
   string: "#ce9178",
   number: "#b5cea8",
   boolean: "#c586c0",
@@ -182,9 +182,52 @@ function renderLabel(info: {
 .inspector-panel {
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-left: var(--glass-border);
+  box-shadow: var(--glass-glow), inset 0 0 30px rgba(0, 0, 0, 0.15);
   overflow: hidden;
+  position: relative;
+}
+
+/* Sci-fi scanning line animation over the tree */
+.inspector-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(90, 200, 250, 0.4),
+    rgba(0, 122, 204, 0.6),
+    rgba(90, 200, 250, 0.4),
+    transparent
+  );
+  opacity: 0.3;
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes scanline {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 
 .inspector-header {
@@ -192,9 +235,12 @@ function renderLabel(info: {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: var(--glass-border);
   flex-shrink: 0;
-  background-color: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 2;
 }
 
 .inspector-title {
@@ -202,11 +248,17 @@ function renderLabel(info: {
   font-size: 13px;
   color: var(--text-primary);
   white-space: nowrap;
+  text-shadow: 0 0 10px rgba(90, 200, 250, 0.3);
+  letter-spacing: 1px;
 }
 
 .filter-input {
   flex: 1;
   min-width: 80px;
+}
+
+.filter-input :deep(.n-input__input-el) {
+  color: var(--text-primary) !important;
 }
 
 .inspector-body {
@@ -221,7 +273,8 @@ function renderLabel(info: {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(30, 30, 30, 0.7);
+  background: rgba(10, 14, 23, 0.85);
+  backdrop-filter: blur(4px);
   z-index: 10;
 }
 
@@ -236,16 +289,64 @@ function renderLabel(info: {
   height: 100%;
 }
 
+/* Tree node hover with cyan glass highlight */
 :deep(.n-tree-node-wrapper:hover) {
-  background-color: var(--bg-tertiary) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 122, 204, 0.08) 0%,
+    rgba(90, 200, 250, 0.05) 50%,
+    transparent 100%
+  ) !important;
+  box-shadow: inset 2px 0 0 rgba(90, 200, 250, 0.4) !important;
 }
 
+/* Selected node with prominent cyan glass */
 :deep(.n-tree-node--selected) {
-  background-color: var(--bg-tertiary) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 122, 204, 0.15) 0%,
+    rgba(90, 200, 250, 0.08) 50%,
+    transparent 100%
+  ) !important;
+  box-shadow: inset 3px 0 0 rgba(0, 122, 204, 0.6),
+    0 0 15px rgba(0, 122, 204, 0.1) !important;
 }
 
 :deep(.n-tree-node-content) {
   color: var(--text-primary);
+}
+
+/* Nesting depth visual effect: left border glow that intensifies with depth */
+:deep(.n-tree-node-wrapper) {
+  position: relative;
+}
+
+:deep(.n-tree-node-wrapper::before) {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(90, 200, 250, 0.15),
+    transparent
+  );
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+:deep(.n-tree-node-wrapper:hover::before) {
+  opacity: 1;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(90, 200, 250, 0.4),
+    transparent
+  );
+  box-shadow: 0 0 6px rgba(90, 200, 250, 0.3);
 }
 
 .tree-node-row {
@@ -256,45 +357,63 @@ function renderLabel(info: {
   min-width: 0;
 }
 
+/* JSON key names with cyan-blue gradient */
 .node-key {
-  font-weight: bold;
-  color: var(--text-primary);
+  font-weight: 600;
+  background: linear-gradient(135deg, #5ac8fa, #007aff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   white-space: nowrap;
   flex-shrink: 0;
+  text-shadow: none;
+  letter-spacing: 0.3px;
 }
 
+/* Glass-like type labels */
 .node-type {
   font-size: 10px;
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
   border: 1px solid;
   text-transform: lowercase;
   flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
+/* Preview text in dim cyan-gray */
 .node-preview {
-  color: var(--text-secondary);
+  color: #6a8aaa;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  font-size: 12px;
 }
 
 .copy-btn {
   opacity: 0;
-  transition: opacity 0.2s;
-  background: none;
-  border: none;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(42, 58, 92, 0.4);
+  border-radius: 4px;
   cursor: pointer;
-  padding: 2px;
+  padding: 2px 6px;
   font-size: 12px;
   flex-shrink: 0;
   color: var(--text-secondary);
+  backdrop-filter: blur(4px);
 }
 
 .copy-btn:hover {
-  color: var(--accent);
+  color: #5ac8fa;
+  border-color: rgba(90, 200, 250, 0.4);
+  box-shadow: 0 0 8px rgba(90, 200, 250, 0.2);
+  background: rgba(90, 200, 250, 0.08);
 }
 
 .tree-node-row:hover .copy-btn {
@@ -313,15 +432,26 @@ function renderLabel(info: {
 
 .output-textarea :deep(.n-input__textarea) {
   height: 100% !important;
-  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, Monaco,
+    "Courier New", monospace;
   font-size: 13px;
-  line-height: 1.5;
-  background-color: var(--bg-secondary);
+  line-height: 1.6;
+  background: transparent;
   color: var(--text-primary);
 }
 
 .output-textarea :deep(.n-input__textarea-el) {
   height: 100% !important;
   resize: none;
+  padding: 16px;
+}
+
+.output-textarea :deep(.n-input__border) {
+  border: none !important;
+}
+
+.output-textarea :deep(.n-input__state-border) {
+  border: none !important;
+  box-shadow: none !important;
 }
 </style>

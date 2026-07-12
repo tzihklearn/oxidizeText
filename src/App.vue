@@ -118,7 +118,31 @@ watch(
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background-color: var(--bg-primary);
+  /* Deep space radial gradient with subtle noise feel */
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0, 60, 120, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0, 122, 204, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(42, 58, 92, 0.2) 0%, transparent 60%),
+    var(--bg-primary);
+  position: relative;
+}
+
+/* Subtle grid overlay for sci-fi depth */
+.app-layout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(42, 58, 92, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 58, 92, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-layout > * {
+  position: relative;
+  z-index: 1;
 }
 
 .app-layout.dragging {
@@ -133,33 +157,63 @@ watch(
 }
 
 .resizer {
-  width: 4px;
+  width: 6px;
   flex-shrink: 0;
   cursor: col-resize;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--border-color);
-  transition: background-color 0.2s;
+  background: transparent;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.resizer:hover,
-.app-layout.dragging .resizer {
-  background-color: var(--accent);
+.resizer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(42, 58, 92, 0.4) 20%,
+    rgba(0, 122, 204, 0.3) 50%,
+    rgba(42, 58, 92, 0.4) 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.resizer:hover::before,
+.app-layout.dragging .resizer::before {
+  opacity: 1;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 122, 204, 0.5) 20%,
+    rgba(90, 200, 250, 0.6) 50%,
+    rgba(0, 122, 204, 0.5) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 15px rgba(0, 122, 204, 0.4);
 }
 
 .resizer-handle {
   width: 2px;
-  height: 24px;
+  height: 32px;
   border-radius: 1px;
   background-color: var(--text-secondary);
-  opacity: 0.5;
+  opacity: 0.3;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s;
 }
 
 .resizer:hover .resizer-handle,
 .app-layout.dragging .resizer-handle {
-  background-color: #ffffff;
+  background-color: #5ac8fa;
   opacity: 1;
+  box-shadow: 0 0 8px rgba(90, 200, 250, 0.6);
 }
 
 .inspector {

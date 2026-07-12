@@ -145,10 +145,32 @@ const viewToggleIcon = () =>
 .toolbar {
   display: flex;
   align-items: center;
-  padding: 6px 12px;
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  padding: 8px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: var(--glass-border);
+  box-shadow: var(--glass-glow), 0 0 15px var(--border-glow);
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.toolbar::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(90, 200, 250, 0.3) 20%,
+    rgba(0, 122, 204, 0.4) 50%,
+    rgba(90, 200, 250, 0.3) 80%,
+    transparent 100%
+  );
 }
 
 .toolbar-spacer {
@@ -157,5 +179,31 @@ const viewToggleIcon = () =>
 
 .btn-icon {
   margin-right: 4px;
+  filter: saturate(0.8);
+  transition: filter 0.2s;
+}
+
+:deep(.n-button:hover) .btn-icon {
+  filter: saturate(1.2) drop-shadow(0 0 4px rgba(90, 200, 250, 0.5));
+}
+
+:deep(.n-button) {
+  color: var(--text-secondary) !important;
+  transition: all 0.25s ease !important;
+}
+
+:deep(.n-button:hover) {
+  color: var(--text-primary) !important;
+  text-shadow: 0 0 12px rgba(90, 200, 250, 0.5);
+  transform: translateY(-1px);
+}
+
+:deep(.n-button__border) {
+  border-color: transparent !important;
+}
+
+:deep(.n-button__state-border) {
+  border-color: rgba(0, 122, 204, 0.3) !important;
+  box-shadow: 0 0 8px rgba(0, 122, 204, 0.2) !important;
 }
 </style>
